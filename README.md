@@ -1,8 +1,8 @@
 # 🎮 Tic-Tac-Toe: Ultimate Edition
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Made with Vanilla JS](https://img.shields.io/badge/Made%20with-Vanilla%20JS-orange)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![No Frameworks](https://img.shields.io/badge/Frameworks-None-brightgreen)](https://en.wikipedia.org/wiki/Vanilla_software)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/maks3592/tic-tac-toe-2135123/blob/main/LICENSE)
+[![JavaScript](https://img.shields.io/badge/JS-Vanilla-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![No Frameworks](https://img.shields.io/badge/Frameworks-None-green.svg)](https://en.wikipedia.org/wiki/Vanilla_software)
 
 > Современная, красивая и умная версия классической игры «Крестики-нолики». 
 > Минималистичный дизайн, плавные анимации, умный ИИ и звуковое сопровождение.
@@ -12,7 +12,6 @@
 ## ✨ Особенности
 
 - 🧠 **3 Уровня сложности ИИ**: от рассеянного «Новичка» до непобедимого «Эксперта» (Minimax + Alpha-Beta).
-- 🌓 **Тёмная и Светлая темы**: переключайтесь одним кликом, выбор сохраняется.
 - 🔊 **Звуковое погружение**: приятные звуки кликов, победы и поражения (Web Audio API).
 - 🎉 **Эффекты победы**: праздничное конфетти при вашем выигрыше.
 - 📱 **Полная адаптивность**: идеально выглядит на телефоне, планшете и десктопе.
@@ -44,17 +43,9 @@ cd tic-tac-toe-2135123
 ## 🛠 Технологии
 
 - **HTML5**: Семантическая верстка.
-- **CSS3**: Flexbox/Grid, CSS Variables, Animations, Dark Mode.
+- **CSS3**: Flexbox/Grid, CSS Variables, Animations.
 - **JavaScript (ES6+)**: Логика игры, AI (Minimax), Web Audio API, LocalStorage.
 - **SVG**: Векторная графика для иконок и анимаций символов.
-
-## 📸 Галерея
-
-| Светлая тема | Тёмная тема |
-| :---: | :---: |
-| ![Light Mode](https://via.placeholder.com/400x250/e0e0e0/333333?text=Light+Mode) | ![Dark Mode](https://via.placeholder.com/400x250/333333/e0e0e0?text=Dark+Mode) |
-
-*(Изображения являются демонстрационными)*
 
 ## 📜 Лицензия
 
