@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Крестики-нолики — игра для двух игроков и против компьютера">
+    <meta name="theme-color" content="#f5f5f7">
+    <title>Крестики-нолики</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>❌</text></svg>">
+    <style>
+        /* CSS переменные для тем */
+        :root {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent-x: #ff6b6b;
+            --accent-o: #4ecdc4;
+            --cell-bg: #ffffff;
+            --cell-shadow: rgba(0, 0, 0, 0.1);
+            --cell-hover: #f8f8fa;
+            --win-line: #ffd93d;
+            --border-radius: 16px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1d1d1f;
+            --bg-secondary: #2d2d2f;
+            --text-primary: #f5f5f7;
+            --text-secondary: #a1a1a6;
+            --cell-bg: #2d2d2f;
+            --cell-shadow: rgba(0, 0, 0, 0.3);
+            --cell-hover: #3a3a3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-secondary);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px var(--cell-shadow);
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        select, button {
+            font-family: inherit;
+            font-size: 0.95rem;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        select {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        button {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        button.secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            box-shadow: 0 2px 10px var(--cell-shadow);
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px var(--cell-shadow);
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px var(--cell-shadow);
+            transition: var(--transition);
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 30px var(--cell-shadow);
+            position: relative;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: var(--cell-bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 2px 10px var(--cell-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell:hover:not(.taken) {
+            background: var(--cell-hover);
+            transform: scale(1.02);
+        }
+
+        .cell.taken {
+            cursor: default;
+        }
+
+        .cell svg {
+            width: 60%;
+            height: 60%;
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .cell .x-mark {
+            stroke: var(--accent-x);
+        }
+
+        .cell .o-mark {
+            stroke: var(--accent-o);
+        }
+
+        /* Анимация отрисовки символов */
+        .cell .x-mark path,
+        .cell .o-mark circle {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawStroke 0.4s ease forwards;
+        }
+
+        @keyframes drawStroke {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Выигрышная линия */
+        .win-line {
+            position: absolute;
+            background: var(--win-line);
+            border-radius: 5px;
+            transform-origin: left center;
+            animation: drawLine 0.5s ease forwards;
+            z-index: 10;
+        }
+
+        @keyframes drawLine {
+            from {
+                width: 0;
+            }
+            to {
+                width: var(--line-length);
+            }
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .actions button {
+            min-width: 140px;
+        }
+
+        /* Конфетти */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-group {
+                justify-content: space-between;
+            }
+
+            .scoreboard {
+                padding: 15px 10px;
+            }
+
+            .score-value {
+                font-size: 1.5rem;
+            }
+
+            .board {
+                gap: 8px;
+                padding: 10px;
+            }
+
+            .cell {
+                border-radius: 8px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions button {
+                width: 100%;
+            }
+        }
+
+        /* Toggle переключатель */
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background: var(--text-secondary);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle.active {
+            background: var(--text-primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background: var(--bg-primary);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .toggle.active::after {
+            left: 25px;
+        }
+
+        .theme-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti-container" id="confettiContainer"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Крестики-нолики</h1>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="mode">Режим:</label>
+                <select id="mode">
+                    <option value="pva">Против компьютера</option>
+                    <option value="pvp">Два игрока</option>
+                </select>
+            </div>
+
+            <div class="control-group" id="difficultyGroup">
+                <label for="difficulty">Сложность:</label>
+                <select id="difficulty">
+                    <option value="beginner">Новичок</option>
+                    <option value="experienced" selected>Опытный</option>
+                    <option value="expert">Эксперт</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="playerSymbol">Играть за:</label>
+                <select id="playerSymbol">
+                    <option value="X">X (первый ход)</option>
+                    <option value="O">O</option>
+                </select>
+            </div>
+
+            <div class="theme-toggle-wrapper control-group">
+                <label>Тема:</label>
+                <div class="toggle" id="themeToggle"></div>
+            </div>
+
+            <div class="theme-toggle-wrapper control-group">
+                <label>Звук:</label>
+                <div class="toggle active" id="soundToggle"></div>
+            </div>
+        </div>
+
+        <div class="scoreboard">
+            <div class="score-item">
+                <div class="score-value" id="wins">0</div>
+                <div class="score-label">Победы</div>
+            </div>
+            <div class="score-item">
+                <div class="score-value" id="losses">0</div>
+                <div class="score-label">Поражения</div>
+            </div>
+            <div class="score-item">
+                <div class="score-value" id="draws">0</div>
+                <div class="score-label">Ничьи</div>
+            </div>
+        </div>
+
+        <div class="status" id="status">Твой ход</div>
+
+        <div class="board" id="board">
+            <!-- Клетки генерируются JS -->
+        </div>
+
+        <div class="actions">
+            <button id="newGameBtn">Новая игра</button>
+            <button class="secondary" id="resetScoreBtn">Сбросить счёт</button>
+        </div>
+    </div>
+
+    <script>
+        // === Состояние игры ===
+        const state = {
+            board: Array(9).fill(null),
+            currentPlayer: 'X',
+            gameActive: true,
+            mode: 'pva',
+            difficulty: 'experienced',
+            playerSymbol: 'X',
+            scores: { wins: 0, losses: 0, draws: 0 },
+            soundEnabled: true,
+            theme: 'light',
+            firstPlayer: 'X'
+        };
+
+        // === DOM элементы ===
+        const elements = {
+            board: document.getElementById('board'),
+            status: document.getElementById('status'),
+            mode: document.getElementById('mode'),
+            difficulty: document.getElementById('difficulty'),
+            difficultyGroup: document.getElementById('difficultyGroup'),
+            playerSymbol: document.getElementById('playerSymbol'),
+            themeToggle: document.getElementById('themeToggle'),
+            soundToggle: document.getElementById('soundToggle'),
+            wins: document.getElementById('wins'),
+            losses: document.getElementById('losses'),
+            draws: document.getElementById('draws'),
+            newGameBtn: document.getElementById('newGameBtn'),
+            resetScoreBtn: document.getElementById('resetScoreBtn'),
+            confettiContainer: document.getElementById('confettiContainer')
+        };
+
+        // === Winning комбинации ===
+        const winPatterns = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // горизонтали
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // вертикали
+            [0, 4, 8], [2, 4, 6] // диагонали
+        ];
+
+        // === Audio контекст ===
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.soundEnabled || !audioCtx) return;
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+            
+            switch (type) {
+                case 'click':
+                    oscillator.frequency.setValueAtTime(800, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.1);
+                    break;
+                case 'win':
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(523, now);
+                    oscillator.frequency.setValueAtTime(659, now + 0.1);
+                    oscillator.frequency.setValueAtTime(784, now + 0.2);
+                    oscillator.frequency.setValueAtTime(1047, now + 0.3);
+                    gainNode.gain.setValueAtTime(0.3, now);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.5);
+                    break;
+                case 'lose':
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(400, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+                    gainNode.gain.setValueAtTime(0.2, now);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.3);
+                    break;
+                case 'draw':
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(300, now);
+                    oscillator.frequency.setValueAtTime(300, now + 0.1);
+                    oscillator.frequency.setValueAtTime(300, now + 0.2);
+                    gainNode.gain.setValueAtTime(0.15, now);
+                    gainNode.gain.linearRampToValueAtTime(0, now + 0.3);
+                    oscillator.start(now);
+                    oscillator.stop(now + 0.3);
+                    break;
+            }
+        }
+
+        // === Сохранение и загрузка ===
+        function loadSettings() {
+            const saved = localStorage.getItem('tictactoe_settings');
+            if (saved) {
+                const data = JSON.parse(saved);
+                state.scores = data.scores || state.scores;
+                state.soundEnabled = data.soundEnabled !== false;
+                state.theme = data.theme || 'light';
+            }
+            updateScoreDisplay();
+            applyTheme();
+            updateToggles();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('tictactoe_settings', JSON.stringify({
+                scores: state.scores,
+                soundEnabled: state.soundEnabled,
+                theme: state.theme
+            }));
+        }
+
+        // === Тема ===
+        function applyTheme() {
+            document.documentElement.setAttribute('data-theme', state.theme);
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            metaTheme.setAttribute('content', state.theme === 'dark' ? '#1d1d1f' : '#f5f5f7');
+        }
+
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            applyTheme();
+            saveSettings();
+            updateToggles();
+        }
+
+        function updateToggles() {
+            elements.themeToggle.classList.toggle('active', state.theme === 'dark');
+            elements.soundToggle.classList.toggle('active', state.soundEnabled);
+        }
+
+        // === Инициализация доски ===
+        function initBoard() {
+            elements.board.innerHTML = '';
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', () => handleCellClick(i));
+                elements.board.appendChild(cell);
+            }
+        }
+
+        // === Обработка клика ===
+        function handleCellClick(index) {
+            if (!state.gameActive || state.board[index]) return;
+            if (state.mode === 'pva' && state.currentPlayer !== state.playerSymbol) return;
+
+            makeMove(index);
+        }
+
+        function makeMove(index) {
+            state.board[index] = state.currentPlayer;
+            renderCell(index);
+            playSound('click');
+
+            const result = checkGameEnd();
+            if (result) {
+                endGame(result);
+                return;
+            }
+
+            state.currentPlayer = state.currentPlayer === 'X' ? 'O' : 'X';
+            updateStatus();
+
+            if (state.mode === 'pva' && state.currentPlayer !== state.playerSymbol && state.gameActive) {
+                setTimeout(makeAIMove, 400 + Math.random() * 300);
+            }
+        }
+
+        function renderCell(index) {
+            const cell = elements.board.children[index];
+            const symbol = state.board[index];
+            cell.classList.add('taken');
+
+            if (symbol === 'X') {
+                cell.innerHTML = `
+                    <svg class="x-mark" viewBox="0 0 100 100">
+                        <path d="M 20 20 L 80 80 M 80 20 L 20 80"/>
+                    </svg>
+                `;
+            } else {
+                cell.innerHTML = `
+                    <svg class="o-mark" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="35"/>
+                    </svg>
+                `;
+            }
+        }
+
+        // === Проверка окончания игры ===
+        function checkGameEnd() {
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (state.board[a] && 
+                    state.board[a] === state.board[b] && 
+                    state.board[a] === state.board[c]) {
+                    return { winner: state.board[a], pattern };
+                }
+            }
+
+            if (state.board.every(cell => cell !== null)) {
+                return { draw: true };
+            }
+
+            return null;
+        }
+
+        function endGame(result) {
+            state.gameActive = false;
+
+            if (result.draw) {
+                elements.status.textContent = 'Ничья!';
+                playSound('draw');
+                state.scores.draws++;
+            } else {
+                drawWinLine(result.pattern);
+                
+                if (state.mode === 'pva') {
+                    if (result.winner === state.playerSymbol) {
+                        elements.status.textContent = 'Ты победил! 🎉';
+                        playSound('win');
+                        state.scores.wins++;
+                        createConfetti();
+                    } else {
+                        elements.status.textContent = 'Компьютер выиграл!';
+                        playSound('lose');
+                        state.scores.losses++;
+                    }
+                } else {
+                    elements.status.textContent = `Победили ${result.winner}!`;
+                    playSound('win');
+                }
+            }
+
+            updateScoreDisplay();
+            saveSettings();
+        }
+
+        // === Отрисовка выигрышной линии ===
+        function drawWinLine(pattern) {
+            const cells = elements.board.children;
+            const startCell = cells[pattern[0]].getBoundingClientRect();
+            const endCell = cells[pattern[2]].getBoundingClientRect();
+            const boardRect = elements.board.getBoundingClientRect();
+
+            const startX = startCell.left - boardRect.left + startCell.width / 2;
+            const startY = startCell.top - boardRect.top + startCell.height / 2;
+            const endX = endCell.left - boardRect.left + endCell.width / 2;
+            const endY = endCell.top - boardRect.top + endCell.height / 2;
+
+            const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+            const line = document.createElement('div');
+            line.className = 'win-line';
+            line.style.width = '0';
+            line.style.height = '6px';
+            line.style.left = `${startX}px`;
+            line.style.top = `${startY}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.setProperty('--line-length', `${length}px`);
+
+            elements.board.appendChild(line);
+        }
+
+        // === AI логика ===
+        function makeAIMove() {
+            if (!state.gameActive) return;
+
+            let move;
+            const aiSymbol = state.playerSymbol === 'X' ? 'O' : 'X';
+            const humanSymbol = state.playerSymbol;
+
+            switch (state.difficulty) {
+                case 'beginner':
+                    move = getBeginnerMove(aiSymbol, humanSymbol);
+                    break;
+                case 'experienced':
+                    move = getExperiencedMove(aiSymbol, humanSymbol);
+                    break;
+                case 'expert':
+                    move = getExpertMove(aiSymbol, humanSymbol);
+                    break;
+            }
+
+            if (move !== null && move !== undefined) {
+                makeMove(move);
+            }
+        }
+
+        function getBeginnerMove(aiSymbol, humanSymbol) {
+            // Случайный ход с небольшой вероятностью правильного
+            if (Math.random() < 0.3) {
+                return getBestMove(aiSymbol, humanSymbol, false);
+            }
+            const available = state.board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+            return available.length > 0 ? available[Math.floor(Math.random() * available.length)] : null;
+        }
+
+        function getExperiencedMove(aiSymbol, humanSymbol) {
+            // Чаще правильный ход, иногда ошибка
+            if (Math.random() < 0.85) {
+                return getBestMove(aiSymbol, humanSymbol, false);
+            }
+            const available = state.board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+            return available.length > 0 ? available[Math.floor(Math.random() * available.length)] : null;
+        }
+
+        function getExpertMove(aiSymbol, humanSymbol) {
+            // Минимакс с альфа-бета отсечением
+            return getBestMove(aiSymbol, humanSymbol, true);
+        }
+
+        function getBestMove(aiSymbol, humanSymbol, useMinimax) {
+            if (useMinimax) {
+                let bestScore = -Infinity;
+                let bestMove = null;
+
+                for (let i = 0; i < 9; i++) {
+                    if (state.board[i] === null) {
+                        state.board[i] = aiSymbol;
+                        const score = minimax(state.board, 0, false, aiSymbol, humanSymbol, -Infinity, Infinity);
+                        state.board[i] = null;
+
+                        if (score > bestScore) {
+                            bestScore = score;
+                            bestMove = i;
+                        }
+                    }
+                }
+                return bestMove;
+            } else {
+                // Простая эвристика
+                // 1. Проверить победу
+                for (let i = 0; i < 9; i++) {
+                    if (state.board[i] === null) {
+                        state.board[i] = aiSymbol;
+                        if (checkWinner(aiSymbol)) {
+                            state.board[i] = null;
+                            return i;
+                        }
+                        state.board[i] = null;
+                    }
+                }
+                // 2. Блокировать игрока
+                for (let i = 0; i < 9; i++) {
+                    if (state.board[i] === null) {
+                        state.board[i] = humanSymbol;
+                        if (checkWinner(humanSymbol)) {
+                            state.board[i] = null;
+                            return i;
+                        }
+                        state.board[i] = null;
+                    }
+                }
+                // 3. Центр
+                if (state.board[4] === null) return 4;
+                // 4. Углы
+                const corners = [0, 2, 6, 8].filter(i => state.board[i] === null);
+                if (corners.length > 0) return corners[Math.floor(Math.random() * corners.length)];
+                // 5. Остальные
+                const available = state.board.map((v, i) => v === null ? i : null).filter(v => v !== null);
+                return available.length > 0 ? available[0] : null;
+            }
+        }
+
+        // минимакс
+        function minimax(board, depth, isMaximizing, aiSymbol, humanSymbol, alpha, beta) {
+            if (checkWinner(aiSymbol)) return 10 - depth;
+            if (checkWinner(humanSymbol)) return depth - 10;
+            if (board.every(cell => cell !== null)) return 0;
+
+            if (isMaximizing) {
+                let maxScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === null) {
+                        board[i] = aiSymbol;
+                        const score = minimax(board, depth + 1, false, aiSymbol, humanSymbol, alpha, beta);
+                        board[i] = null;
+                        maxScore = Math.max(score, maxScore);
+                        alpha = Math.max(alpha, score);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return maxScore;
+            } else {
+                let minScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === null) {
+                        board[i] = humanSymbol;
+                        const score = minimax(board, depth + 1, true, aiSymbol, humanSymbol, alpha, beta);
+                        board[i] = null;
+                        minScore = Math.min(score, minScore);
+                        beta = Math.min(beta, score);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return minScore;
+            }
+        }
+
+        function checkWinner(symbol) {
+            return winPatterns.some(pattern => 
+                pattern.every(i => state.board[i] === symbol)
+            );
+        }
+
+        // === Конфетти ===
+        function createConfetti() {
+            const colors = ['#ff6b6b', '#4ecdc4', '#ffd93d', '#ff8c42', '#79c267'];
+            const count = 100;
+
+            for (let i = 0; i < count; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                elements.confettiContainer.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 4500);
+            }
+        }
+
+        // === Обновление статуса ===
+        function updateStatus() {
+            if (!state.gameActive) return;
+
+            if (state.mode === 'pva') {
+                if (state.currentPlayer === state.playerSymbol) {
+                    elements.status.textContent = 'Твой ход';
+                } else {
+                    elements.status.textContent = 'Компьютер думает...';
+                }
+            } else {
+                elements.status.textContent = `Ход игрока ${state.currentPlayer}`;
+            }
+        }
+
+        function updateScoreDisplay() {
+            elements.wins.textContent = state.scores.wins;
+            elements.losses.textContent = state.scores.losses;
+            elements.draws.textContent = state.scores.draws;
+        }
+
+        // === Новая игра ===
+        function newGame() {
+            state.board = Array(9).fill(null);
+            state.gameActive = true;
+            state.currentPlayer = state.firstPlayer;
+            state.firstPlayer = state.firstPlayer === 'X' ? 'O' : 'X'; // чередование первого хода
+            
+            elements.board.innerHTML = '';
+            initBoard();
+            updateStatus();
+
+            // Если игрок играет за O и первый ход компьютера
+            if (state.mode === 'pva' && state.playerSymbol !== state.currentPlayer) {
+                setTimeout(makeAIMove, 500);
+            }
+        }
+
+        function resetScore() {
+            state.scores = { wins: 0, losses: 0, draws: 0 };
+            updateScoreDisplay();
+            saveSettings();
+        }
+
+        // === Event listeners ===
+        elements.mode.addEventListener('change', (e) => {
+            state.mode = e.target.value;
+            elements.difficultyGroup.style.display = state.mode === 'pva' ? 'flex' : 'none';
+            newGame();
+        });
+
+        elements.difficulty.addEventListener('change', (e) => {
+            state.difficulty = e.target.value;
+            newGame();
+        });
+
+        elements.playerSymbol.addEventListener('change', (e) => {
+            state.playerSymbol = e.target.value;
+            newGame();
+        });
+
+        elements.themeToggle.addEventListener('click', toggleTheme);
+
+        elements.soundToggle.addEventListener('click', () => {
+            state.soundEnabled = !state.soundEnabled;
+            saveSettings();
+            updateToggles();
+        });
+
+        elements.newGameBtn.addEventListener('click', () => {
+            initAudio();
+            newGame();
+        });
+
+        elements.resetScoreBtn.addEventListener('click', resetScore);
+
+        // === Инициализация ===
+        loadSettings();
+        initBoard();
+        elements.difficultyGroup.style.display = 'flex';
+        updateStatus();
+    </script>
+</body>
+</html>
