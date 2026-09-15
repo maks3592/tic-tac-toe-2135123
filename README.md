@@ -1,13 +1,13 @@
 # 🎮 Tic-Tac-Toe: Ultimate Edition
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Made with Vanilla JS](https://img.shields.io/badge/Made%20with-Vanilla%20JS-orange)]()
-[![No Frameworks](https://img.shields.io/badge/Frameworks-None-brightgreen)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Made with Vanilla JS](https://img.shields.io/badge/Made%20with-Vanilla%20JS-orange)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![No Frameworks](https://img.shields.io/badge/Frameworks-None-brightgreen)](https://en.wikipedia.org/wiki/Vanilla_software)
 
 > Современная, красивая и умная версия классической игры «Крестики-нолики». 
 > Минималистичный дизайн, плавные анимации, умный ИИ и звуковое сопровождение.
 
-![Preview](https://i.pinimg.com/originals/ad/9e/76/ad9e7644b85965f5aa66584a8b11d5a4.png)
+![Preview](image.png)
 
 ## ✨ Особенности
 
